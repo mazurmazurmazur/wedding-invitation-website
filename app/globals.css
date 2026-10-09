@@ -73,7 +73,10 @@ h1, h2, h3, .signature, .contact-name { font-family: var(--font-cormorant), Geor
 h1 { color: var(--primary); font-size: clamp(84px, 9.6vw, 145px); line-height: .87; letter-spacing: -.055em; margin: 0 0 26px; }
 .name-second { display: block; white-space: nowrap; margin-top: 5px; font-size: .86em; }
 .name-second i { font-weight: 300; font-size: .8em; }
-.hero-subtitle { font-size: 13px; margin: 9px 0 18px; }
+.guest-greeting { display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--primary); padding: 9px 0 9px 15px; margin: 1px 0 5px; color: var(--primary); }
+  .guest-greeting span { font-size: 8px; letter-spacing: .2em; }
+  .guest-greeting strong { font-family: var(--font-cormorant), Georgia, serif; font-size: clamp(27px, 3vw, 42px); font-weight: 400; line-height: .95; letter-spacing: -.02em; }
+  .hero-subtitle { font-size: 13px; margin: 9px 0 18px; }
 .hero-details { display: flex; gap: 12px; font-size: 10px; color: var(--muted-foreground); }
 .detail-dot { color: var(--primary); }
 .solid-link { display: inline-flex; align-items: center; justify-content: space-between; gap: 36px; background: var(--primary); color: var(--primary-foreground); padding: 17px 23px; font-size: 11px; margin-top: 30px; transition: background .2s, transform .2s; }
@@ -185,6 +188,8 @@ h2 { font-size: clamp(42px, 4.5vw, 66px); line-height: 1.06; letter-spacing: -.0
   .hero-copy { padding-top: 0; }
   .hero-eyebrow { margin-bottom: 25px; font-size: 8px; }
   h1 { font-size: clamp(78px, 17vw, 116px); margin-bottom: 15px; }
+  .guest-greeting { padding-left: 12px; margin-top: 0; }
+  .guest-greeting strong { font-size: clamp(28px, 9vw, 38px); line-height: 1; }
   .hero-subtitle { font-size: 12px; margin-top: 10px; margin-bottom: 13px; }
   .hero-details { font-size: 10px; }
   .solid-link { margin-top: 24px; font-size: 11px; padding-block: 15px; }

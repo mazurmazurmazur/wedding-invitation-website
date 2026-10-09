@@ -46,6 +46,7 @@ export function InvitationSite({ settings, invitation, token }: { settings: Wedd
           <div className="hero-copy">
             <div className="eyebrow hero-eyebrow"><span className="little-line" />{t('TO BĘDZIE NASZ DZIEŃ', 'A DAY TO CALL OURS')}</div>
             <h1 id="hero-heading">Maria<span className="name-second"><i>&</i> Krzysztof</span></h1>
+            {invitation && <div className="guest-greeting" aria-label={t('Zaproszenie dla', 'Invitation for')}><span>{t('DLA WAS', 'FOR YOU')}</span><strong>{invitation.guests.map(g => g.name).join(' & ')}</strong></div>}
             <p className="hero-subtitle">{invitation ? greeting : t('Bierzemy ślub. Bądźcie z nami.', 'We’re getting married. Be there with us.')}</p>
             <div className="hero-details"><span>{formatDate(settings.date, language)}</span><span className="detail-dot">·</span><span>{settings.venue}</span></div>
             <a href="#rsvp" className="solid-link">{t('Będziemy razem?', 'Will you join us?')}<ArrowUpRight size={18} aria-hidden="true" /></a>
