@@ -33,9 +33,15 @@ export async function createInvitation(input: unknown) {
   if (!parsed.success) return { ok: false as const }
   const token = randomBytes(32).toString('base64url')
   const guests = parsed.data.names.map(name => ({ id: crypto.randomUUID(), name, attendance: null, dietary: '', transport: 'undecided' as const, returnTime: 'undecided' as const, accommodation: 'undecided' as const, nextDay: 'undecided' as const }))
-  await db.insert(invitations).values({ userId: user.id, tokenHash: hashToken(token), greetingPl: parsed.data.greetingPl, greetingEn: parsed.data.greetingEn, guests })
+  await db.insert(invitations).values({ userId: user.id, tokenHash: hashToken(token), token, greetingPl: parsed.data.greetingPl, greetingEn: parsed.data.greetingEn, guests })
   revalidatePath('/dashboard')
   return { ok: true as const, token }
+}
+
+export async function deleteInvitation(id: string) {
+  const user = await adminUser()
+  await db.delete(invitations).where(and(eq(invitations.id, id), eq(invitations.userId, user.id)))
+  revalidatePath('/dashboard')
 }
 
 export async function toggleInvitation(id: string, active: boolean) {
