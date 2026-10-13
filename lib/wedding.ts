@@ -72,14 +72,16 @@ export const defaultSettings: WeddingSettings = {
 }
 
 export const photos = {
-  engagement: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_3086.JPG-JCfdMKywbN6s9U5atK7vHqAYkF2qqo.jpeg',
-  temple: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_9951.JPG-tO6DMnpDHwr6SDe1cTaELBfiITgOtY.jpeg',
-  sailing: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_2949.JPG-dzJI63wqVZMA42y8R2gUoRJmfk6U0m.jpeg',
-  beach: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_5233.JPG-y6iCtltAwhJgb5zvAWqAwwSvMj86kZ.jpeg',
-  seoul: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_3664.JPG-qyEwHmXbsCCIqbL9hygHRGg0g71WVZ.jpeg',
-  shanghai: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_6673.JPG-zsGNugWP67Yi5va2QEbHDSDQx8BRVZ.jpeg',
-  home: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_0985.JPG-MAsJ1kD7vMQHLz48Fn87m4bJVWKdoe.jpeg',
-  together: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_3841.JPG-cpbyS4MIvbFZ3YqRSinDexxyEiRhPJ.jpeg',
+  couple: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00106-y9yBRLolxs4jxHzkRSkoGTi4nRd3Od.jpg',
+  kiss: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/buzi-EABR42QsWiq1fwxUyz3JY8JmclBHvu.jpg',
+  together: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Image%20%283%29-0GYkRpk2LnyE2qEhVgat2idrNV7Zo9.jpg',
+  embrace: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Image%20%281%29-GO6q25HTZ1qv5XfiJMhgdp5Njrs1YC.jpg',
+  boat: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00257-Y9q1h3Qfo96CMdmYf729nRbOM4oig0.jpg',
+  breeze: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00135-VbBImrqpIpH4ztM6w8KsDEPaLYZlin.jpg',
+  krzysztof: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00190-6XGGk5Zy6gfbBbMq3MLP4fynxNuIW9.jpg',
+  shallows: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00122-kVjyFHnUwWMFokbUqWVEt5fvtMJI0H.jpg',
+  shore: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00114-1UVjPNzUSypd2cyhnK6uLEyEhH385r.jpg',
+  maria: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00110-7wgzztgpZMiNhhQIKQZ8pXkjENCHn8.jpg',
 }
 
 export function formatDate(date: string, language: Language, options?: Intl.DateTimeFormatOptions) {
