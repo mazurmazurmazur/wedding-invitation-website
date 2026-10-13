@@ -85,9 +85,8 @@ h1 { color: var(--primary); font-size: clamp(84px, 9.6vw, 145px); line-height: .
 .hero-collage { position: relative; min-height: 480px; margin-left: 12px; }
 .main-photo { position: absolute; inset: 0 3% 30px 14%; transform: rotate(4deg); background: var(--secondary); }
 .main-photo img { object-fit: cover; object-position: 52% 54%; filter: saturate(.78); }
-.small-photo { position: absolute; width: 48%; bottom: -7px; left: -4%; background: #fffdf9; padding: 8px 8px 0; transform: rotate(-8deg); box-shadow: 0 5px 24px #37392d13; }
-.small-photo img { aspect-ratio: 4/3; object-fit: cover; filter: saturate(.72); }
-.small-photo figcaption { font-family: var(--font-cormorant), Georgia, serif; font-size: 17px; font-style: italic; text-align: center; padding: 7px 0 9px; color: var(--primary); }
+.small-photo { position: absolute; width: 52%; bottom: -7px; left: -4%; }
+.small-photo img { display: block; width: 100%; height: auto; }
 .date-stamp { position: absolute; top: -27px; left: -16px; height: 116px; width: 116px; border: 1px solid var(--primary); border-radius: 50%; background: var(--background); color: var(--primary); display: flex; flex-direction: column; align-items: center; justify-content: center; transform: rotate(-13deg); outline: 1px solid var(--primary); outline-offset: -6px; }
 .date-stamp span { font-size: 7px; letter-spacing: .17em; }
 .date-stamp strong { font-family: var(--font-cormorant), Georgia, serif; font-weight: 400; font-size: 31px; line-height: 1.3; }
