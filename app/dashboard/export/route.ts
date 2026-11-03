@@ -17,11 +17,12 @@ export async function GET(request: Request) {
   const origin = new URL(request.url).origin
   const rows = await db.select().from(invitations).orderBy(asc(invitations.createdAt))
   const csv = Papa.unparse({
-    fields: ['external_id', 'name', 'url', 'active', 'rsvp_status', 'send_wave', 'guests', 'attending'],
+    fields: ['external_id', 'name', 'url', 'default_language', 'active', 'rsvp_status', 'send_wave', 'guests', 'attending'],
     data: rows.map(row => [
       safeCell(row.externalId ?? ''),
       safeCell(invitationTitle({ displayName: row.displayName, guests: row.guests }, 'pl')),
       row.token ? `${origin}/invite/${row.token}` : '',
+      row.defaultLanguage === 'en' ? 'EN' : 'PL',
       row.active ? 'active' : 'inactive',
       rsvpStatus(row.guests, row.respondedAt),
       safeCell(row.sendWave),

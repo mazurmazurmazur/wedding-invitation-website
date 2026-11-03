@@ -1,7 +1,11 @@
 import Papa from 'papaparse'
-import type { Guest } from './wedding'
+import type { Guest, Language } from './wedding'
+
+const isImportLanguage = (value: string): value is Language => value === 'pl' || value === 'en'
 
 export const IMPORT_COLUMNS = ['external_id', 'display_name', 'known_guest_names', 'unnamed_guest_slots', 'max_guests', 'send_wave', 'source_rsvp', 'source_rows'] as const
+/** Optional, so CSV files without it stay valid. Missing or empty means PL. */
+export const OPTIONAL_IMPORT_COLUMNS = ['default_language'] as const
 export const MAX_IMPORT_ROWS = 500
 export const MAX_IMPORT_BYTES = 1_000_000
 export const MAX_GUESTS_PER_INVITATION = 30
@@ -21,6 +25,8 @@ export type ImportRow = {
   sendWave: string
   sourceRsvp: string
   sourceRows: string
+  /** Lower-cased CSV value; 'pl' or 'en' once valid. Kept raw so validateRows can report bad values. */
+  defaultLanguage: string
 }
 export type RowIssue = { level: 'error' | 'warning'; message: string }
 
@@ -78,6 +84,7 @@ export function parseImportCsv(input: string): { rows: ImportRow[]; errors: stri
       sendWave: cleanText(record.send_wave),
       sourceRsvp: cleanText(record.source_rsvp),
       sourceRows: cleanText(record.source_rows),
+      defaultLanguage: cleanText(record.default_language).toLowerCase() || 'pl',
     }
   })
   return { rows, errors }
@@ -114,6 +121,7 @@ export function validateRows(rows: ImportRow[], existingIds: Iterable<string> = 
     if (total > MAX_GUESTS_PER_INVITATION) error(`Za dużo osób w zaproszeniu (maks. ${MAX_GUESTS_PER_INVITATION}).`)
     if (row.maxGuests !== null && Number.isInteger(row.maxGuests) && total > row.maxGuests) error(`Osób (${total}) jest więcej niż max_guests (${row.maxGuests}).`)
     if (row.maxGuests !== null && Number.isInteger(row.maxGuests) && total < row.maxGuests) issues.push({ level: 'warning', message: `max_guests (${row.maxGuests}) jest większe niż liczba osób (${total}). Goście nie mogą dodać nikogo sami.` })
+    if (!isImportLanguage(row.defaultLanguage)) error(`default_language musi być PL lub EN (jest „${row.defaultLanguage.slice(0, 20)}”).`)
     if (row.sendWave.length > 50 || row.sourceRsvp.length > 500 || row.sourceRows.length > 500) error('Za długa wartość send_wave, source_rsvp lub source_rows.')
     const alreadyImported = rowExternalIds(row).filter(id => existing.has(id))
     if (alreadyImported.length) issues.push({ level: 'warning', message: `Już zaimportowane (${alreadyImported.join(', ')}) — zostanie pominięte.` })
@@ -140,6 +148,7 @@ export function mergeRows(rows: ImportRow[], displayName?: string): ImportRow {
     sendWave: uniqueJoin(rows.map(row => row.sendWave), ' / '),
     sourceRsvp: uniqueJoin(rows.map(row => row.sourceRsvp), ' | '),
     sourceRows: uniqueJoin(rows.map(row => row.sourceRows), ', '),
+    defaultLanguage: primary.defaultLanguage,
   }
 }
 

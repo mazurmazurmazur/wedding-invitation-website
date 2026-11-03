@@ -4,12 +4,18 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { ArrowDown, ArrowUpRight, Menu, X, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { photos, formatDate, invitationTitle, type Language, type WeddingSettings, type Invitation } from '@/lib/wedding'
+import { photos, formatDate, invitationTitle, LANGUAGE_COOKIE, type Language, type WeddingSettings, type Invitation } from '@/lib/wedding'
 import { PracticalDetails } from './practical-details'
 import { RsvpSection } from './rsvp-section'
 
-export function InvitationSite({ settings, invitation, token, preview = false }: { settings: WeddingSettings; invitation?: Invitation; token?: string; preview?: boolean }) {
-  const [language, setLanguage] = useState<Language>('pl')
+export function InvitationSite({ settings, invitation, token, preview = false, initialLanguage }: { settings: WeddingSettings; invitation?: Invitation; token?: string; preview?: boolean; initialLanguage?: Language }) {
+  const [language, setLanguageState] = useState<Language>(initialLanguage ?? invitation?.defaultLanguage ?? 'pl')
+  function setLanguage(next: Language) {
+    setLanguageState(next)
+    // A session cookie scoped to this invitation's path keeps the guest's manual choice for the visit
+    // and overrides the invitation default; it is never sent with other invitations' pages.
+    if (token && !preview) document.cookie = `${LANGUAGE_COOKIE}=${next}; path=/invite/${token}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`
+  }
   const [menuOpen, setMenuOpen] = useState(false)
   const pl = language === 'pl'
   const t = (polish: string, english: string) => pl ? polish : english

@@ -1,4 +1,8 @@
 export type Language = 'pl' | 'en'
+export const LANGUAGES = ['pl', 'en'] as const satisfies readonly Language[]
+/** Session cookie holding a guest's manual PL/EN choice, scoped to their /invite/<token> path. */
+export const LANGUAGE_COOKIE = 'wedding_lang'
+export const isLanguage = (value: unknown): value is Language => value === 'pl' || value === 'en'
 export type Bilingual = Record<Language, string>
 export type Choice = 'yes' | 'no' | 'undecided'
 export type Guest = {
@@ -16,6 +20,7 @@ export type Guest = {
 export type RsvpStatus = 'pending' | 'attending' | 'partial' | 'declined'
 export type Invitation = {
   displayName: string
+  defaultLanguage: Language
   greetingPl: string
   greetingEn: string
   guests: Guest[]
