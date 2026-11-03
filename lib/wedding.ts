@@ -10,8 +10,12 @@ export type Guest = {
   returnTime: '01:00' | '04:00' | 'none' | 'undecided'
   accommodation: Choice
   nextDay: Choice
+  /** An invited companion whose name the organizers don't know yet; the guest may enter it in the RSVP. */
+  placeholder?: boolean
 }
+export type RsvpStatus = 'pending' | 'attending' | 'partial' | 'declined'
 export type Invitation = {
+  displayName: string
   greetingPl: string
   greetingEn: string
   guests: Guest[]
@@ -82,6 +86,30 @@ export const photos = {
   shallows: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00122-kVjyFHnUwWMFokbUqWVEt5fvtMJI0H.jpg',
   shore: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00114-1UVjPNzUSypd2cyhnK6uLEyEhH385r.jpg',
   maria: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DSC00110-7wgzztgpZMiNhhQIKQZ8pXkjENCHn8.jpg',
+}
+
+export function guestLabel(guest: Guest, guests: Guest[], language: Language) {
+  if (guest.name.trim()) return guest.name
+  const slots = guests.filter(g => g.placeholder)
+  const base = language === 'pl' ? 'Osoba towarzysząca' : 'Plus-one'
+  return slots.length > 1 ? `${base} ${slots.findIndex(g => g.id === guest.id) + 1}` : base
+}
+
+export function invitationTitle(invitation: Pick<Invitation, 'displayName' | 'guests'>, language: Language) {
+  if (invitation.displayName.trim()) return invitation.displayName
+  const named = invitation.guests.filter(g => g.name.trim()).map(g => g.name)
+  const unnamed = invitation.guests.length - named.length
+  const companion = language === 'pl' ? (unnamed > 1 ? `${unnamed} osoby towarzyszące` : 'osoba towarzysząca') : (unnamed > 1 ? `${unnamed} guests` : 'guest')
+  return [named.join(' & '), unnamed ? companion : ''].filter(Boolean).join(language === 'pl' ? ' i ' : ' & ')
+}
+
+export function rsvpStatus(guests: Guest[], respondedAt: Date | string | null): RsvpStatus {
+  if (!respondedAt) return 'pending'
+  const yes = guests.filter(g => g.attendance === 'yes').length
+  const no = guests.filter(g => g.attendance === 'no').length
+  if (yes === guests.length) return 'attending'
+  if (no === guests.length) return 'declined'
+  return yes > 0 ? 'partial' : 'pending'
 }
 
 export function formatDate(date: string, language: Language, options?: Intl.DateTimeFormatOptions) {
