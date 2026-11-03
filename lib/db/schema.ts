@@ -1,5 +1,5 @@
 import { pgTable, text, uuid, jsonb, boolean, timestamp, integer } from 'drizzle-orm/pg-core'
-import type { Guest, WeddingSettings } from '@/lib/wedding'
+import type { Guest, Language, WeddingSettings } from '@/lib/wedding'
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(), name: text('name').notNull(), email: text('email').notNull().unique(), emailVerified: boolean('emailVerified').notNull().default(false), image: text('image'), createdAt: timestamp('createdAt').notNull().defaultNow(), updatedAt: timestamp('updatedAt').notNull().defaultNow(),
@@ -23,6 +23,7 @@ export const invitations = pgTable('wedding_invitations', {
   sendWave: text('send_wave').notNull().default(''),
   sourceRsvp: text('source_rsvp').notNull().default(''),
   sourceRows: text('source_rows').notNull().default(''),
+  defaultLanguage: text('default_language').$type<Language>().notNull().default('pl'),
 })
 export const weddingSettings = pgTable('wedding_settings', {
   id: text('id').primaryKey().default('wedding'), userId: text('userId').notNull(), content: jsonb('content').$type<WeddingSettings>().notNull(), updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

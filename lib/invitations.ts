@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { and, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { invitations, weddingSettings } from '@/lib/db/schema'
-import { defaultSettings, deadlineEnd, type Invitation, type WeddingSettings } from '@/lib/wedding'
+import { defaultSettings, deadlineEnd, isLanguage, type Invitation, type WeddingSettings } from '@/lib/wedding'
 
 export const TOKEN_PATTERN = /^[a-zA-Z0-9_-]{43}$/
 
@@ -32,7 +32,7 @@ type InvitationRow = typeof invitations.$inferSelect
 
 export function toInvitation(row: InvitationRow, settings: WeddingSettings): Invitation {
   const editable = Date.now() <= Math.max(deadlineEnd(settings.deadline).getTime(), row.reopenUntil?.getTime() ?? 0)
-  return { displayName: row.displayName, greetingPl: row.greetingPl, greetingEn: row.greetingEn, guests: row.guests, message: row.message, respondedAt: row.respondedAt?.toISOString() ?? null, editable }
+  return { displayName: row.displayName, defaultLanguage: isLanguage(row.defaultLanguage) ? row.defaultLanguage : 'pl', greetingPl: row.greetingPl, greetingEn: row.greetingEn, guests: row.guests, message: row.message, respondedAt: row.respondedAt?.toISOString() ?? null, editable }
 }
 
 export async function getInvitation(token: string): Promise<{ invitation: Invitation; settings: WeddingSettings } | null> {

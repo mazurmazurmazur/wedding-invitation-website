@@ -75,3 +75,46 @@ test('merging rows combines households without duplicate names and keeps all ids
   // Re-importing the original file later must skip D2 because it now lives inside D1.
   assert.ok(validateRows(rows, ['D1', ...merged.mergedIds]).every(issues => issues.some(i => i.level === 'warning')))
 })
+
+test('default_language is optional: files without the column default every row to PL', () => {
+  const { rows, errors: parseErrors } = parseImportCsv(`${header}\nL1,Anna,Anna Nowak,0,,1,,`)
+  assert.deepEqual(parseErrors, [])
+  assert.equal(rows[0].defaultLanguage, 'pl')
+  assert.deepEqual(errors(validateRows(rows)[0]), [])
+})
+
+test('default_language accepts PL/EN in any case and treats empty as PL', () => {
+  const { rows } = parseImportCsv(`${header},default_language\nL1,A,A,0,,1,,,EN\nL2,B,B,0,,1,,,pl\nL3,C,C,0,,1,,, \nL4,D,D,0,,1,,,En`)
+  assert.deepEqual(rows.map(r => r.defaultLanguage), ['en', 'pl', 'pl', 'en'])
+  assert.ok(validateRows(rows).every(issues => errors(issues).length === 0))
+})
+
+test('invalid default_language is a row error and blocks that row', () => {
+  const { rows } = parseImportCsv(`${header},default_language\nL1,A,A,0,,1,,,DE\nL2,B,B,0,,1,,,english`)
+  for (const issues of validateRows(rows)) assert.ok(errors(issues).some(i => /default_language/.test(i.message)))
+})
+
+test('language never affects grouping, guests or duplicate detection', () => {
+  const base = parseImportCsv(`${header}\nG1,Rodzina Nowaków,Ewa Nowak|Jan Nowak,1,3,1,,`).rows[0]
+  const en = parseImportCsv(`${header},default_language\nG1,Rodzina Nowaków,Ewa Nowak|Jan Nowak,1,3,1,,,EN`).rows[0]
+  const { defaultLanguage: _a, ...baseRest } = base
+  const { defaultLanguage: _b, ...enRest } = en
+  assert.deepEqual(enRest, baseRest)
+  assert.deepEqual(buildGuests(en).map(g => [g.name, !!g.placeholder]), buildGuests(base).map(g => [g.name, !!g.placeholder]))
+  assert.ok(validateRows([en], ['G1'])[0].some(i => i.level === 'warning' && /pominięte/.test(i.message)))
+})
+
+test('merged invitation keeps the primary row language', () => {
+  const { rows } = parseImportCsv(`${header},default_language\nM1,Ola,Ola Kowalska,0,,1,,,EN\nM2,Marek,Marek Kowalski,0,,1,,,PL`)
+  assert.equal(mergeRows(rows).defaultLanguage, 'en')
+  assert.equal(mergeRows([rows[1], rows[0]]).defaultLanguage, 'pl')
+})
+
+test('87 groups: 20 EN and 67 PL are parsed exactly', () => {
+  const lines = Array.from({ length: 87 }, (_, i) => `R${i + 1},Gość ${i + 1},Gość ${i + 1},0,,1,,,${i < 20 ? 'EN' : i % 2 ? 'PL' : ''}`)
+  const { rows } = parseImportCsv(`${header},default_language\n${lines.join('\n')}`)
+  assert.equal(rows.length, 87)
+  assert.equal(rows.filter(r => r.defaultLanguage === 'en').length, 20)
+  assert.equal(rows.filter(r => r.defaultLanguage === 'pl').length, 67)
+  assert.ok(validateRows(rows).every(issues => errors(issues).length === 0))
+})

@@ -7,7 +7,7 @@ import { db } from '@/lib/db'
 import { invitations } from '@/lib/db/schema'
 import { requireAdmin } from '@/lib/admin'
 import { newInvitationToken } from '@/lib/invitations'
-import { rsvpStatus, type Guest } from '@/lib/wedding'
+import { isLanguage, LANGUAGES, rsvpStatus, type Guest, type Language } from '@/lib/wedding'
 import { blankGuest, buildGuests, cleanText, MAX_GUESTS_PER_INVITATION, MAX_IMPORT_BYTES, MAX_IMPORT_ROWS, parseImportCsv, rowExternalIds, validateRows, type ImportRow } from '@/lib/csv-import'
 
 type InvitationRow = typeof invitations.$inferSelect
@@ -22,6 +22,7 @@ function toAdminInvitation(row: InvitationRow) {
     displayName: row.displayName,
     maxGuests: row.maxGuests,
     sendWave: row.sendWave,
+    defaultLanguage: isLanguage(row.defaultLanguage) ? row.defaultLanguage : 'pl' as Language,
     sourceRsvp: row.sourceRsvp,
     guests: row.guests,
     message: row.message,
@@ -78,6 +79,7 @@ const rowSchema = z.object({
   sendWave: z.string().max(50),
   sourceRsvp: z.string().max(500),
   sourceRows: z.string().max(500),
+  defaultLanguage: z.enum(LANGUAGES).default('pl'),
 })
 
 /** Creates invitations for new rows only. Never sends anything; rows whose external_id already exists are skipped untouched. */
@@ -98,13 +100,26 @@ export async function commitImport(input: unknown) {
     if (fresh.length) {
       await tx.insert(invitations).values(fresh.map(row => {
         const { token, tokenHash } = newInvitationToken()
-        return { userId: user.id, tokenHash, token, externalId: row.externalId, mergedExternalIds: row.mergedIds, displayName: row.displayName, maxGuests: row.maxGuests, sendWave: row.sendWave, sourceRsvp: row.sourceRsvp, sourceRows: row.sourceRows, guests: buildGuests(row) }
+        return { userId: user.id, tokenHash, token, externalId: row.externalId, mergedExternalIds: row.mergedIds, displayName: row.displayName, maxGuests: row.maxGuests, sendWave: row.sendWave, sourceRsvp: row.sourceRsvp, sourceRows: row.sourceRows, defaultLanguage: isLanguage(row.defaultLanguage) ? row.defaultLanguage : 'pl', guests: buildGuests(row) }
       })).onConflictDoNothing({ target: invitations.externalId, where: sql`external_id is not null` })
     }
     return { created: fresh.length, skipped: rows.length - fresh.length }
   })
   revalidatePath('/dashboard')
   return { ok: true as const, ...result }
+}
+
+const languageSchema = z.object({ id: z.string().uuid(), language: z.enum(LANGUAGES) })
+
+/** Changes only the invitation's default language; guests, answers and the link stay untouched. */
+export async function setInvitationLanguage(input: unknown) {
+  await requireAdmin()
+  const parsed = languageSchema.safeParse(input)
+  if (!parsed.success) return { ok: false as const, error: 'Nieprawidłowy język.' }
+  const [updated] = await db.update(invitations).set({ defaultLanguage: parsed.data.language }).where(eq(invitations.id, parsed.data.id)).returning({ id: invitations.id })
+  if (!updated) return { ok: false as const, error: 'Nie znaleziono zaproszenia.' }
+  revalidatePath('/dashboard')
+  return { ok: true as const }
 }
 
 const editSchema = z.object({

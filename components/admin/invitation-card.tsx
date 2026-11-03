@@ -6,8 +6,8 @@ import { Check, Copy, Eye, ExternalLink, Pencil, Plus, RefreshCw, Trash2, UserPl
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { deleteInvitation, regenerateLink, toggleInvitation, updateInvitation, type AdminInvitation } from '@/app/actions/admin'
-import { guestLabel, invitationTitle, type RsvpStatus } from '@/lib/wedding'
+import { deleteInvitation, regenerateLink, setInvitationLanguage, toggleInvitation, updateInvitation, type AdminInvitation } from '@/app/actions/admin'
+import { guestLabel, invitationTitle, LANGUAGES, type Language, type RsvpStatus } from '@/lib/wedding'
 
 const subscribe = () => () => {}
 export function useOrigin() {
@@ -65,6 +65,30 @@ function EditGuests({ invitation, onDone }: { invitation: AdminInvitation; onDon
   </div>
 }
 
+function LanguageSelector({ invitation }: { invitation: AdminInvitation }) {
+  const router = useRouter()
+  const [language, setLanguage] = useState<Language>(invitation.defaultLanguage)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function choose(next: Language) {
+    if (next === language || saving) return
+    const previous = language
+    setLanguage(next); setSaving(true); setError('')
+    const result = await setInvitationLanguage({ id: invitation.id, language: next })
+    setSaving(false)
+    if (!result.ok) { setLanguage(previous); setError(result.error); return }
+    router.refresh()
+  }
+
+  return <div className="flex items-center gap-2">
+    <div role="group" aria-label="Domyślny język zaproszenia" className="flex rounded-lg border p-0.5" aria-busy={saving}>
+      {LANGUAGES.map(code => <Button key={code} size="xs" variant={language === code ? 'default' : 'ghost'} aria-pressed={language === code} disabled={saving} onClick={() => choose(code)}>{code.toUpperCase()}</Button>)}
+    </div>
+    {error && <span role="alert" className="text-xs text-destructive">{error}</span>}
+  </div>
+}
+
 export function InvitationCard({ invitation }: { invitation: AdminInvitation }) {
   const router = useRouter()
   const origin = useOrigin()
@@ -91,7 +115,10 @@ export function InvitationCard({ invitation }: { invitation: AdminInvitation }) 
           <span>{invitation.active ? 'Aktywne' : 'Wyłączone'}</span>
         </p>
       </div>
-      <Badge variant={invitation.status === 'pending' ? 'outline' : invitation.status === 'declined' ? 'secondary' : 'default'}>{statusLabels[invitation.status]}</Badge>
+      <div className="flex items-center gap-2">
+        <LanguageSelector key={invitation.defaultLanguage} invitation={invitation} />
+        <Badge variant={invitation.status === 'pending' ? 'outline' : invitation.status === 'declined' ? 'secondary' : 'default'}>{statusLabels[invitation.status]}</Badge>
+      </div>
     </div>
     <ul className="mt-3 flex flex-col gap-1 text-sm">{invitation.guests.map(g => <li key={g.id} className="flex justify-between gap-3"><span className={g.name ? '' : 'text-muted-foreground'}>{guestLabel(g, invitation.guests, 'pl')}</span><span className="text-xs text-muted-foreground">{g.attendance ? attendanceLabel[g.attendance] : '—'}</span></li>)}</ul>
     {invitation.token ? <div className="mt-3 flex flex-col gap-2 sm:flex-row">

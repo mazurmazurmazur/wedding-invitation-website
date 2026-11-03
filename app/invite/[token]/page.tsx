@@ -1,5 +1,7 @@
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getInvitation } from '@/lib/invitations'
+import { isLanguage, LANGUAGE_COOKIE } from '@/lib/wedding'
 import { InvitationSite } from '@/components/wedding/invitation-site'
 
 export const dynamic = 'force-dynamic'
@@ -9,5 +11,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
   const { token } = await params
   const result = await getInvitation(token)
   if (!result) notFound()
-  return <InvitationSite settings={result.settings} invitation={result.invitation} token={token} />
+  const chosen = (await cookies()).get(LANGUAGE_COOKIE)?.value
+  const initialLanguage = isLanguage(chosen) ? chosen : result.invitation.defaultLanguage
+  return <InvitationSite settings={result.settings} invitation={result.invitation} token={token} initialLanguage={initialLanguage} />
 }
