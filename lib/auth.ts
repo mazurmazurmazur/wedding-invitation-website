@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth'
 import { Pool } from 'pg'
 import { isAdminEmail } from '@/lib/admin-emails'
+import { databaseUrl } from '@/lib/db/connection-string'
 
 const baseUrl = process.env.BETTER_AUTH_URL
   ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined)
@@ -20,7 +21,7 @@ const trustedOrigins = [
 ].filter((origin): origin is string => Boolean(origin))
 
 export const auth = betterAuth({
-  database: new Pool({ connectionString: process.env.DATABASE_URL }),
+  database: new Pool({ connectionString: databaseUrl() }),
   baseURL: baseUrl,
   trustedOrigins,
   emailAndPassword: { enabled: true },
