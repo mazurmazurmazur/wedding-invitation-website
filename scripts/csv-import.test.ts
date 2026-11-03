@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { buildGuests, mergeRows, parseImportCsv, rowGuestCount, rowNamedGuests, validateRows } from '../lib/csv-import.ts'
 
 const header = 'external_id,display_name,known_guest_names,unnamed_guest_slots,max_guests,send_wave,source_rsvp,source_rows'
-const errors = (issues: { level: string }[]) => issues.filter(i => i.level === 'error')
+const errors = (issues: { level: string; message: string }[]) => issues.filter(i => i.level === 'error')
 
 test('one-person invitation uses display name as the only guest', () => {
   const { rows } = parseImportCsv(`${header}\nA1,Łukasz Żółć,,0,1,1,,2`)
@@ -27,7 +27,7 @@ test('primary guest is not duplicated when display name repeats a known name', (
 test('unnamed plus-ones count against max_guests', () => {
   const { rows } = parseImportCsv(`${header}\nA4,Piotr,Piotr Wiśniewski,2,2,1,,5`)
   assert.equal(rowGuestCount(rows[0]), 3)
-  assert.ok(errors(validateRows(rows)[0]).some(i => /max_guests/.test((i as { message: string }).message)))
+  assert.ok(errors(validateRows(rows)[0]).some(i => /max_guests/.test(i.message)))
 })
 
 test('semicolon delimiter, UTF-8 BOM and Polish characters survive', () => {
