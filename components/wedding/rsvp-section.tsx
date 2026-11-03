@@ -7,13 +7,14 @@ import { Field, FieldGroup, FieldLabel, FieldSet, FieldLegend } from '@/componen
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
 import { saveRsvp } from '@/app/actions/rsvp'
-import { formatDate, type Guest, type Invitation, type Language, type WeddingSettings } from '@/lib/wedding'
+import { Input } from '@/components/ui/input'
+import { formatDate, guestLabel, type Guest, type Invitation, type Language, type WeddingSettings } from '@/lib/wedding'
 
 function GuestSelect({ id, label, value, onChange, options, required }: { id: string; label: string; value: string; onChange: (value: string) => void; options: [string, string][]; required?: boolean }) {
   return <Field><FieldLabel htmlFor={id}>{label}</FieldLabel><NativeSelect id={id} value={value} onChange={e => onChange(e.target.value)} required={required} className="w-full">{options.map(([v, text]) => <NativeSelectOption value={v} key={v}>{text}</NativeSelectOption>)}</NativeSelect></Field>
 }
 
-export function RsvpSection({ settings, language, invitation, token }: { settings: WeddingSettings; language: Language; invitation?: Invitation; token?: string }) {
+export function RsvpSection({ settings, language, invitation, token, readOnly = false }: { settings: WeddingSettings; language: Language; invitation?: Invitation; token?: string; readOnly?: boolean }) {
   const t = (pl: string, en: string) => language === 'pl' ? pl : en
   const [guests, setGuests] = useState<Guest[]>(invitation?.guests ?? [])
   const [message, setMessage] = useState(invitation?.message ?? '')
@@ -27,7 +28,7 @@ export function RsvpSection({ settings, language, invitation, token }: { setting
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!token || pending || closed) return
+    if (!token || pending || closed || readOnly) return
     setError(null)
     setSaved(false)
     startTransition(async () => {
@@ -44,10 +45,13 @@ export function RsvpSection({ settings, language, invitation, token }: { setting
     <div className="rsvp-heading"><span className="eyebrow">03 / RSVP</span><h2 id="rsvp-heading">{t('Będziecie', 'Will you')}<br /><i>{t('z nami?', 'be there?')}</i></h2><p>{t('Mamy nadzieję, że tak! Dajcie nam znać, żebyśmy mogli przygotować dla Was miejsce i zadbać o wszystkie drobiazgi.', 'We hope so! Let us know so we can save you a place and take care of all the little things.')}</p><p className="rsvp-deadline">{`${t('Czekamy do', 'Reply by')} ${formatDate(settings.deadline, language)}.`}</p></div>
     <div className="rsvp-form-area">{!invitation ? <div className="private-invitation-note"><Mail size={28} strokeWidth={1.2} aria-hidden="true" /><h3>{t('Zaproszenie tylko dla Was.', 'An invitation just for you.')}</h3><p>{t('Aby potwierdzić obecność, otwórzcie swój osobisty link do zaproszenia. Znajdziecie tam Wasze imiona i krótki formularz.', 'To RSVP, open your personal invitation link. You’ll find your names and a short form waiting for you.')}</p><a href="#contact" className="text-link">{t('Nie możecie znaleźć linku? Napiszcie do nas', 'Can’t find your link? Get in touch')}<ArrowUpRight size={16} /></a></div> : <form onSubmit={submit} className="rsvp-form" aria-label={t('Potwierdzenie obecności', 'RSVP form')}>
       {invitation.respondedAt && !saved && <p className="form-notice">{t('Wasze wcześniejsze odpowiedzi są poniżej. Możecie je zaktualizować do końca terminu.', 'Your saved answers are below. You can update them until the deadline.')}</p>}
-      {closed && <p className="form-notice">{errors.closed}</p>}
-      <fieldset disabled={closed || pending} className="flex min-w-0 flex-col gap-6">
+      {closed && !readOnly && <p className="form-notice">{errors.closed}</p>}
+      {readOnly && <p className="form-notice">{t('To podgląd organizatora. Formularz jest zablokowany, a odpowiedzi gości pozostają bez zmian.', 'This is an organizer preview. The form is locked and guest answers stay unchanged.')}</p>}
+      <fieldset disabled={closed || pending || readOnly} className="flex min-w-0 flex-col gap-6">
         <legend className="sr-only">{t('Wasze odpowiedzi', 'Your answers')}</legend>
-        {guests.map(guest => <FieldSet className="guest-response" key={guest.id}><FieldLegend>{guest.name}</FieldLegend><FieldGroup><GuestSelect id={`${guest.id}-attendance`} label={t('Czy będziesz z nami?', 'Will you join us?')} value={guest.attendance ?? ''} required onChange={value => update(guest.id, { attendance: value as Guest['attendance'] })} options={[[ '', t('Wybierz odpowiedź', 'Choose an answer') ], ['yes', t('Tak, z przyjemnością!', 'Yes, I’d love to!')], ['no', t('Niestety, nie mogę', 'Unfortunately, I can’t')]]} />
+        {guests.map(guest => <FieldSet className="guest-response" key={guest.id}><FieldLegend>{guestLabel(guest, invitation.guests, language)}</FieldLegend><FieldGroup>
+          {guest.placeholder && <Field><FieldLabel htmlFor={`${guest.id}-name`}>{t('Imię i nazwisko osoby towarzyszącej', 'Plus-one’s full name')}</FieldLabel><Input id={`${guest.id}-name`} autoComplete="off" maxLength={120} value={guest.name} required={guest.attendance === 'yes'} onChange={e => update(guest.id, { name: e.target.value })} /></Field>}
+          <GuestSelect id={`${guest.id}-attendance`} label={t('Czy będziesz z nami?', 'Will you join us?')} value={guest.attendance ?? ''} required onChange={value => update(guest.id, { attendance: value as Guest['attendance'] })} options={[[ '', t('Wybierz odpowiedź', 'Choose an answer') ], ['yes', t('Tak, z przyjemnością!', 'Yes, I’d love to!')], ['no', t('Niestety, nie mogę', 'Unfortunately, I can’t')]]} />
           {guest.attendance === 'yes' && <>
             <Field><FieldLabel htmlFor={`${guest.id}-dietary`}>{t('Alergie i potrzeby żywieniowe (opcjonalnie)', 'Allergies and dietary needs (optional)')}</FieldLabel><Textarea id={`${guest.id}-dietary`} maxLength={1500} value={guest.dietary} onChange={e => update(guest.id, { dietary: e.target.value })} /></Field>
             <GuestSelect id={`${guest.id}-transport`} label={t('Autokar z Warszawy, około 12:00', 'Coach from Warsaw, around 12:00')} value={guest.transport} onChange={v => update(guest.id, { transport: v as Guest['transport'] })} options={yesNo} />
@@ -57,10 +61,10 @@ export function RsvpSection({ settings, language, invitation, token }: { setting
           </>}
         </FieldGroup></FieldSet>)}
         <Field><FieldLabel htmlFor="rsvp-message">{t('Coś od Was (opcjonalnie)', 'A little note (optional)')}</FieldLabel><Textarea id="rsvp-message" maxLength={3000} value={message} onChange={e => { setMessage(e.target.value); setSaved(false) }} /></Field>
-        {!closed && <Button type="submit" size="lg" disabled={pending}>{pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <ArrowUpRight data-icon="inline-start" />}{pending ? t('Zapisujemy…', 'Saving…') : t('Zapisz odpowiedzi', 'Save answers')}</Button>}
+        {!closed && !readOnly && <Button type="submit" size="lg" disabled={pending}>{pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <ArrowUpRight data-icon="inline-start" />}{pending ? t('Zapisujemy…', 'Saving…') : t('Zapisz odpowiedzi', 'Save answers')}</Button>}
       </fieldset>
       {error && <p className="form-error" role="alert">{errors[error]}</p>}
-      {saved && <div className="form-notice" role="status"><Check size={18} aria-hidden="true" /><strong>{t('Dziękujemy', 'Thank you')}, {guests.map(g => g.name).join(', ')}!</strong><p>{t('Wasze odpowiedzi zostały zapisane. Możecie wrócić do tego linku i zmienić je do końca terminu.', 'Your answers have been saved. You can revisit this link and update them until the deadline.')}</p></div>}
+      {saved && <div className="form-notice" role="status"><Check size={18} aria-hidden="true" /><strong>{t('Dziękujemy', 'Thank you')}, {guests.map(g => guestLabel(g, guests, language)).join(', ')}!</strong><p>{t('Wasze odpowiedzi zostały zapisane. Możecie wrócić do tego linku i zmienić je do końca terminu.', 'Your answers have been saved. You can revisit this link and update them until the deadline.')}</p></div>}
     </form>}
     <details className="rsvp-privacy"><summary>{t('Wasze dane zostają między nami', 'Your details stay between us')}</summary><p>{t('Maria i Krzysztof wykorzystują odpowiedzi wyłącznie do organizacji ślubu, transportu, noclegów i posiłków. Informacje o diecie są dobrowolne. Niezbędne informacje mogą trafić do osób pomagających w organizacji, np. cateringu. Nie udostępniajcie osobistego linku innym osobom. Aby poprawić lub usunąć dane, skontaktujcie się z nami. Dane usuniemy po zakończeniu organizacji wesela.', 'Maria and Krzysztof use your answers only to organise the wedding, transport, accommodation and food. Dietary information is optional. Necessary details may be shared with people helping organise the day, such as the caterer. Please don’t share your personal link. Contact us to correct or delete your details. We’ll remove the data once wedding arrangements are complete.')}</p></details>
     </div>

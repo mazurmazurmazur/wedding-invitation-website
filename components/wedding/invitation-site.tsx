@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { ArrowDown, ArrowUpRight, Menu, X, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { photos, formatDate, type Language, type WeddingSettings, type Invitation } from '@/lib/wedding'
+import { photos, formatDate, invitationTitle, type Language, type WeddingSettings, type Invitation } from '@/lib/wedding'
 import { PracticalDetails } from './practical-details'
 import { RsvpSection } from './rsvp-section'
 
-export function InvitationSite({ settings, invitation, token }: { settings: WeddingSettings; invitation?: Invitation; token?: string }) {
+export function InvitationSite({ settings, invitation, token, preview = false }: { settings: WeddingSettings; invitation?: Invitation; token?: string; preview?: boolean }) {
   const [language, setLanguage] = useState<Language>('pl')
   const [menuOpen, setMenuOpen] = useState(false)
   const pl = language === 'pl'
@@ -19,10 +19,11 @@ export function InvitationSite({ settings, invitation, token }: { settings: Wedd
     ['#information', t('Warto wiedzieć', 'Good to know')],
     ['#contact', t('Kontakt', 'Contact')],
   ]
-  const greeting = invitation ? (pl ? invitation.greetingPl : invitation.greetingEn) || invitation.guests.map(g => g.name).join(', ') : t('Najlepsze chwile są wspólne.', 'The best moments are shared.')
+  const greeting = invitation ? (pl ? invitation.greetingPl : invitation.greetingEn) || invitationTitle(invitation, language) : t('Najlepsze chwile są wspólne.', 'The best moments are shared.')
 
   return (
     <div className="invitation-site">
+      {preview && <div role="status" className="sticky top-0 z-50 bg-primary px-4 py-2 text-center text-sm text-primary-foreground">{t('Podgląd organizatora — odpowiedzi nie są zapisywane.', 'Organizer preview — answers are not saved.')}</div>}
       <a className="skip-link" href="#main">{t('Przejdź do treści', 'Skip to content')}</a>
       <header className="site-header">
         <a href="#" className="monogram" aria-label="Maria & Krzysztof">M<span>&</span>K<span className="monogram-dot">.</span></a>
@@ -45,7 +46,7 @@ export function InvitationSite({ settings, invitation, token }: { settings: Wedd
         <section className="hero-section" aria-labelledby="hero-heading">
           <div className="hero-copy">
             <h1 id="hero-heading">Maria<span className="name-second"><i>&</i> Krzysztof</span></h1>
-            {invitation && <div className="guest-greeting"><strong>{invitation.guests.map(g => g.name).join(' & ')} - {t('zaproszenie', 'invitation')}</strong></div>}
+            {invitation && <div className="guest-greeting"><strong>{invitationTitle(invitation, language)} - {t('zaproszenie', 'invitation')}</strong></div>}
             <div className="hero-details"><a href="/calendar" aria-label={`${formatDate(settings.date, language)} — ${t('Dodaj do kalendarza', 'Add to calendar')}`}>{formatDate(settings.date, language)}</a><a href={settings.mapsUrl} target="_blank" rel="noreferrer">{settings.venue}<ArrowUpRight size={20} aria-hidden="true" /></a></div>
             <p className="hero-deadline">{`${t('Dajcie znać do', 'Let us know by')} ${formatDate(settings.deadline, language)}`}</p>
             <a href="#rsvp" className="solid-link">{t('Celebrujcie z nami', 'Celebrate with us')}<ArrowDown size={18} aria-hidden="true" /></a>
@@ -76,7 +77,7 @@ export function InvitationSite({ settings, invitation, token }: { settings: Wedd
 
         <section className="memories-section" aria-labelledby="memories-heading"><div className="memories-heading"><span className="eyebrow">{t('TU I TAM. ZAWSZE RAZEM.', 'HERE AND THERE. ALWAYS TOGETHER.')}</span><h2 id="memories-heading">{t('Po prostu', 'Simply')}{' '}<i>{t('my.', 'us.')}</i></h2><span className="memory-counter">01 — 07</span></div><div className="photo-strip" tabIndex={0} role="region" aria-label={t('Nasze zdjęcia — przewiń w bok', 'Our photos — scroll horizontally')}>{(['embrace', 'breeze', 'boat', 'shallows', 'krzysztof', 'shore', 'maria'] as const).map((key, i) => <figure key={key}><div><Image src={photos[key]} alt={t(['Pocałunek Marii i Krzysztofa w płytkiej wodzie', 'Maria w sukni poruszanej morską bryzą', 'Krzysztof oparty o białą łódź', 'Maria w spokojnej wodzie na tle wzgórz', 'Uśmiechnięty Krzysztof w morzu', 'Maria przy skalistym brzegu', 'Maria odwrócona w stronę otwartego morza'][i], ['Maria and Krzysztof kissing in shallow water', 'Maria with her dress caught in the sea breeze', 'Krzysztof leaning against a white boat', 'Maria in calm water beneath the hills', 'Krzysztof smiling in the sea', 'Maria beside the rocky shore', 'Maria facing the open sea'][i])} fill sizes="(max-width: 700px) 64vw, 25vw" /></div></figure>)}</div></section>
 
-        <RsvpSection settings={settings} language={language} invitation={invitation} token={token} />
+        <RsvpSection settings={settings} language={language} invitation={invitation} token={token} readOnly={preview} />
 
         <section id="contact" className="contact-section section-pad"><div><span className="eyebrow">{t('JESTEŚMY DLA WAS', 'WE’RE HERE FOR YOU')}</span><h2>{t('Pogadajmy.', 'Let’s talk.')}</h2><p>{t('Pytania, pomysły, coś do ustalenia? Po prostu do nas napiszcie lub zadzwońcie.', 'Questions, ideas or something to arrange? Just send us a message or give us a call.')}</p></div><div className="contact-people">{[['Maria', settings.mariaContact], ['Krzysztof', settings.krzysztofContact]].map(([name, contact]) => <div key={name}><span className="contact-name">{name}</span>{contact ? <a className="text-link" href={`tel:${contact.replace(/[^+\d]/g, '')}`}>{contact}<ArrowUpRight size={16} /></a> : <span className="contact-placeholder">{t('Numer podamy wkrótce', 'Phone number coming soon')}</span>}</div>)}</div></section>
       </main>
