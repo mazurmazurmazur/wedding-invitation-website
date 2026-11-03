@@ -12,6 +12,8 @@ const nextConfig = {
         { key: 'Strict-Transport-Security', value: 'max-age=63072000' },
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
         { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        // Search engines only; social link-preview crawlers do not treat this as a block.
+        { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
       ],
     }]
   },
