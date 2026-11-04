@@ -6,7 +6,8 @@ import { Check, Copy, Eye, ExternalLink, Pencil, Plus, RefreshCw, Trash2, UserPl
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { deleteInvitation, regenerateLink, setInvitationLanguage, toggleInvitation, updateInvitation, type AdminInvitation } from '@/app/actions/admin'
+import { Checkbox } from '@/components/ui/checkbox'
+import { deleteInvitation, regenerateLink, setInvitationLanguage, setInvitationSent, toggleInvitation, updateInvitation, type AdminInvitation } from '@/app/actions/admin'
 import { guestLabel, invitationTitle, LANGUAGES, type Language, type RsvpStatus } from '@/lib/wedding'
 
 const subscribe = () => () => {}
@@ -89,6 +90,28 @@ function LanguageSelector({ invitation }: { invitation: AdminInvitation }) {
   </div>
 }
 
+function SentCheckbox({ invitation }: { invitation: AdminInvitation }) {
+  const router = useRouter()
+  const [sent, setSent] = useState(Boolean(invitation.sentAt))
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(false)
+  const date = invitation.sentAt ? new Date(invitation.sentAt).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' }) : ''
+
+  async function change(next: boolean) {
+    setSent(next); setSaving(true); setError(false)
+    const result = await setInvitationSent(invitation.id, next)
+    setSaving(false)
+    if (!result.ok) { setSent(!next); setError(true); return }
+    router.refresh()
+  }
+
+  return <label className="flex cursor-pointer items-center gap-2 text-sm">
+    <Checkbox checked={sent} disabled={saving} onCheckedChange={checked => change(checked === true)} />
+    <span>Wysłane{sent && date ? <span className="text-xs text-muted-foreground"> · {date}</span> : null}</span>
+    {error && <span role="alert" className="text-xs text-destructive">Nie zapisano</span>}
+  </label>
+}
+
 export function InvitationCard({ invitation }: { invitation: AdminInvitation }) {
   const router = useRouter()
   const origin = useOrigin()
@@ -131,7 +154,8 @@ export function InvitationCard({ invitation }: { invitation: AdminInvitation }) 
       <p className="leading-relaxed text-muted-foreground">Link utworzony przed zapisywaniem linków — działa, ale nie da się go wyświetlić.</p>
       <Button size="sm" variant="outline" disabled={busy} onClick={() => window.confirm('Wygenerować nowy link? Jeśli stary link został już wysłany, przestanie działać, a odpowiedzi zostaną zachowane.') && run(() => regenerateLink(invitation.id))}><RefreshCw data-icon="inline-start" />Wygeneruj nowy link</Button>
     </div>}
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <SentCheckbox key={invitation.sentAt ?? 'unsent'} invitation={invitation} />
       <Button nativeButton={false} size="sm" variant="ghost" render={<a href={`/dashboard/preview/${invitation.id}`} target="_blank" rel="noopener noreferrer" />}><Eye data-icon="inline-start" />Podgląd</Button>
       <Button size="sm" variant="ghost" onClick={() => setEditing(v => !v)} aria-expanded={editing}><Pencil data-icon="inline-start" />Edytuj osoby</Button>
       <Button size="sm" variant="ghost" disabled={busy} onClick={() => run(() => toggleInvitation(invitation.id, !invitation.active))}>{invitation.active ? 'Wyłącz' : 'Włącz'}</Button>

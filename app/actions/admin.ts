@@ -27,6 +27,7 @@ function toAdminInvitation(row: InvitationRow) {
     guests: row.guests,
     message: row.message,
     respondedAt: row.respondedAt?.toISOString() ?? null,
+    sentAt: row.sentAt?.toISOString() ?? null,
     status: rsvpStatus(row.guests, row.respondedAt),
     createdAt: row.createdAt.toISOString(),
   }
@@ -170,6 +171,16 @@ export async function deleteInvitation(id: string) {
   if (!z.string().uuid().safeParse(id).success) return
   await db.delete(invitations).where(eq(invitations.id, id))
   revalidatePath('/dashboard')
+}
+
+/** Manual organizer marker only; it does not touch guests, answers or the link. */
+export async function setInvitationSent(id: string, sent: boolean) {
+  await requireAdmin()
+  if (!z.string().uuid().safeParse(id).success || typeof sent !== 'boolean') return { ok: false as const }
+  const [updated] = await db.update(invitations).set({ sentAt: sent ? new Date() : null }).where(eq(invitations.id, id)).returning({ id: invitations.id })
+  if (!updated) return { ok: false as const }
+  revalidatePath('/dashboard')
+  return { ok: true as const }
 }
 
 export async function toggleInvitation(id: string, active: boolean) {

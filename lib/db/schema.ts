@@ -24,6 +24,7 @@ export const invitations = pgTable('wedding_invitations', {
   sourceRsvp: text('source_rsvp').notNull().default(''),
   sourceRows: text('source_rows').notNull().default(''),
   defaultLanguage: text('default_language').$type<Language>().notNull().default('pl'),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
 })
 export const weddingSettings = pgTable('wedding_settings', {
   id: text('id').primaryKey().default('wedding'), userId: text('userId').notNull(), content: jsonb('content').$type<WeddingSettings>().notNull(), updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
