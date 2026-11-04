@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Manrope } from 'next/font/google'
-import { SHARE_DESCRIPTION, SHARE_IMAGE, SHARE_TITLE, SITE_NAME, SITE_URL } from '@/lib/site'
+import { FACEBOOK_APP_ID, SHARE_DESCRIPTION, SHARE_IMAGE, SHARE_TITLE, SITE_NAME, SITE_URL } from '@/lib/site'
 import './globals.css'
 
 const serif = Cormorant_Garamond({ subsets: ['latin', 'latin-ext'], weight: ['300', '400', '500', '600'], style: ['normal', 'italic'], variable: '--font-cormorant', display: 'swap' })
@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     alternateLocale: ['en_GB'],
     images: [SHARE_IMAGE],
   },
+  ...(FACEBOOK_APP_ID ? { facebook: { appId: FACEBOOK_APP_ID } } : {}),
   twitter: { card: 'summary_large_image', title: SHARE_TITLE, description: SHARE_DESCRIPTION, images: [{ url: SHARE_IMAGE.url, alt: SHARE_IMAGE.alt }] },
   // Kept out of search results; link-preview crawlers (Facebook, Messenger, WhatsApp) still read Open Graph tags.
   robots: { index: false, follow: false },

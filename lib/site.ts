@@ -7,6 +7,10 @@ export const SITE_URL =
   : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}`
   : process.env.V0_RUNTIME_URL || 'http://localhost:3000'
 
+/** Public Facebook App ID for the fb:app_id tag. Only emitted when set to a valid numeric ID. */
+const rawFacebookAppId = process.env.FACEBOOK_APP_ID?.trim()
+export const FACEBOOK_APP_ID = rawFacebookAppId && /^\d{5,20}$/.test(rawFacebookAppId) ? rawFacebookAppId : undefined
+
 export const SITE_NAME = 'Maria & Krzysztof'
 export const SHARE_TITLE = 'Maria & Krzysztof — 2 maja 2027'
 export const SHARE_DESCRIPTION = 'Bierzemy ślub! Bądźcie z nami 2 maja 2027 w Ostoi Borucza.'
