@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { createInvitation, type getAdminData } from '@/app/actions/admin'
 import { ImportPanel } from './import-panel'
-import { InvitationCard } from './invitation-card'
+import { InvitationList } from './invitation-list'
 
 type Data = Awaited<ReturnType<typeof getAdminData>>
 
@@ -59,7 +59,7 @@ export function DashboardClient({ initialData }: { initialData: Data }) {
         </div>
         <div className="rounded-2xl border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Zaproszenia</h2><Button nativeButton={false} variant="outline" size="sm" render={<a href="/dashboard/export" download />}><Download data-icon="inline-start" />Eksport CSV</Button></div>
-          <div className="mt-4 flex flex-col gap-3">{initialData.invitations.length ? initialData.invitations.map(inv => <InvitationCard key={inv.id} invitation={inv} />) : <p className="text-sm text-muted-foreground">Brak zaproszeń.</p>}</div>
+          <InvitationList invitations={initialData.invitations} />
         </div>
       </section>
     </div>
